@@ -1,0 +1,16 @@
+# Verified environment: Python 3.11, CUDA 12.9 driver-compatible node (H100/H200)
+torch==2.11.0+cu129
+--extra-index-url https://download.pytorch.org/whl/cu129
+transformers==5.6.0
+datasets==4.6.1
+accelerate==1.12.0
+safetensors==0.6.2
+tokenizers==0.22.2
+huggingface_hub==1.24.0
+sentencepiece==0.2.1
+numpy==2.3.3
+loguru==0.7.3
+rich==14.3.3
+tqdm==4.67.1
+# OPTIONAL: flash-attn (the harness auto-falls back to torch SDPA if absent;
+# published numbers were measured with SDPA)
