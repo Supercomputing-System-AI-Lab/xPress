@@ -59,8 +59,8 @@ pip install -r requirements.txt
 Place the two released refiner checkpoints here (or point `XPRESS_CKPT` / `MK_CKPT` env vars anywhere):
 
 ```
-checkpoints/xpress_refiner_cotrain_403k.pt   # xPress head + co-trained drafter
-checkpoints/markov_refiner_cotrain_403k.pt   # Markov head + co-trained drafter
+UIUC-SSAIL/Qwen3-8B-XPress-b16   # xPress head + co-trained drafter
+UIUC-SSAIL/Qwen3-8B-Markov-b16   # Markov head + co-trained drafter
 ```
 
 The base drafter (`z-lab/Qwen3-8B-DFlash-b16`) and target (`Qwen/Qwen3-8B`) download automatically from Hugging Face.
