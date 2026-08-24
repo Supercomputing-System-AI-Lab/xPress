@@ -3,8 +3,8 @@ set -euo pipefail
 
 TARGET=Qwen/Qwen3-8B
 DRAFT=z-lab/Qwen3-8B-DFlash-b16
-XPRESS_CKPT="${XPRESS_CKPT:-./checkpoints/xpress_refiner_cotrain_403k.pt}"
-MK_CKPT="${MK_CKPT:-./checkpoints/markov_refiner_cotrain_403k.pt}"
+XPRESS_CKPT="${XPRESS_CKPT:-UIUC-SSAIL/Qwen3-8B-XPress-b16}"
+MK_CKPT="${MK_CKPT:-UIUC-SSAIL/Qwen3-8B-Markov-b16}"
 DATASET="${1:-gsm8k}"
 TEMP="${2:-0}"                        # 0 = greedy (published protocol), 1 = lossless sampling
 if [ "$TEMP" = "0" ]; then _KDEF=4,5,6,7; _RDEF=6; else _KDEF=6,7,8; _RDEF=5; fi
