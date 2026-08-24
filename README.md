@@ -84,7 +84,7 @@ Bare-drafter baseline (the `drafter` column below): pass `--drafter-only` to `be
 
 Single-method / custom runs go through `benchmark_compile_all.py` directly (see `--help`); the `.sh` wrapper only sets the published protocol.
 
-### 📊 Expected results (acceptance length per step, T=0, K=6)
+### 📊 Expected results (acceptance length per step, T=0)
 
 | benchmark | drafter | Markov | xPress |
 |---|:---:|:---:|:---:|
