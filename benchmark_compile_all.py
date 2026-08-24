@@ -12,7 +12,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from transformers.utils import is_flash_attn_2_available
 from model import load_and_process_dataset
 import distributed as dist
-from bench_utils import (load_draft_model_for_benchmark, spec_gen,
+from bench_utils import (load_draft_model_for_benchmark, resolve_checkpoint, spec_gen,
                          warmup_pipeline, report_compile_cache, setup_compile_all)
 from bench_metrics import write_answers, summarize, agg, print_latency_profile
 
@@ -97,11 +97,13 @@ def main() -> None:
     parser.add_argument("--answer-file", type=str, default=None, help="Output answer file (jsonl) to store generation results for both b=1 and b=k.")
     parser.add_argument("--attn-implementation", type=str, default=None, choices=["eager", "sdpa", "flash_attention_2"], help="Attention implementation for target and draft models. Default: auto-detect flash_attn.")
     parser.add_argument("--xpress-refiner-path", type=str, default=None,
-                        help="refiner_cotrain.pt for the XPress refiner head; also overrides the "
+                        help="Local refiner_cotrain.pt OR a HF repo id (user/repo[:file], downloads "
+                        "refiner_cotrain.pt by default) for the XPress head; also overrides the "
                         "drafter with the checkpoint's co-trained draft_state_dict. Head config is "
                         "rebuilt from ckpt['args'].")
     parser.add_argument("--markov-refiner-path", type=str, default=None,
-                        help="refiner_cotrain.pt for a MARKOV-ONLY head. Loads the FAITHFUL DeepSpec "
+                        help="Local refiner_cotrain.pt OR a HF repo id (user/repo[:file]) for a MARKOV-ONLY "
+                        "head. Loads the FAITHFUL DeepSpec "
                         "VanillaMarkov (sequential sample_block_tokens); our w1/w2 remapped to markov_w1/w2. "
                         "Sequential (no K); ignores --xpress-refine-passes. Mutually exclusive with the others.")
     parser.add_argument("--profile-latency", action="store_true",
@@ -175,6 +177,9 @@ def main() -> None:
         if any(k <= 0 for k in _ks):
             parser.error(f"--fair-k-list needs K >= 1 (use --drafter-only for K=0), got {_ks}")
         args.xpress_refine_passes = _ks[0]
+
+    args.xpress_refiner_path = resolve_checkpoint(args.xpress_refiner_path)
+    args.markov_refiner_path = resolve_checkpoint(args.markov_refiner_path)
 
     if args.profile_latency:
         os.environ["TIME_DRAFTER"] = "1"

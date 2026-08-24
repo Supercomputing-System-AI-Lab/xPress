@@ -4,6 +4,26 @@ from transformers import AutoConfig
 from model.dflash import DFlashDraftModel
 
 
+def resolve_checkpoint(path_or_repo):
+    """Accept a local .pt path OR a Hugging Face repo id, so users can pass the released
+    checkpoint by NAME (no manual download; private repos need `hf auth login` / HF_TOKEN):
+
+        --xpress-refiner-path user/Qwen3-8B-XPress-ckpt              # downloads refiner_cotrain.pt
+        --xpress-refiner-path user/repo:some_file.pt                  # explicit filename in the repo
+        --xpress-refiner-path checkpoints/xpress_refiner_cotrain.pt   # plain local path (unchanged)
+    """
+    if path_or_repo is None or os.path.exists(path_or_repo):
+        return path_or_repo
+    repo_id, _, filename = path_or_repo.partition(":")
+    if repo_id.count("/") != 1:
+        raise FileNotFoundError(
+            f"checkpoint {path_or_repo!r}: not a local file, and not a 'user/repo' HF id")
+    from huggingface_hub import hf_hub_download
+    local = hf_hub_download(repo_id=repo_id, filename=filename or "refiner_cotrain.pt")
+    print(f"[ckpt] resolved {path_or_repo!r} -> {local}")
+    return local
+
+
 def normalize_draft_config_for_benchmark(config):
     dflash_config = dict(getattr(config, "dflash_config", {}) or {})
     config.dflash_config = dflash_config
