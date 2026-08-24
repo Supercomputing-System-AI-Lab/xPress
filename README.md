@@ -1,5 +1,5 @@
 <div align="center">
-<h1>xPress: Parallel Refinement for Diffusion Drafters in Speculative Decoding</h1>
+<h1>XPress: Parallel Refinement for Diffusion Drafters in Speculative Decoding</h1>
 
 <p align="center">
   <a href="">
