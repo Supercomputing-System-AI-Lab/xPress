@@ -139,18 +139,43 @@ Single-method / custom runs go through `benchmark_compile_all.py` directly (see 
 
 ### 📊 Results
 
-The figure at the top of this page reports **end-to-end speedup**; the table below reports the
-**acceptance length** that produces it (mean accepted tokens per verification step, T=0). `bench_fair_fast.sh` sweeps `K_LIST=4,5,6,8` and prints a row per K.
+Both temperatures, all seven benchmarks: **speedup over the autoregressive baseline (Sp.)** and
+the **acceptance length (τ)** that produces it, against the plain dFlash drafter and the
+Markov-head baseline.
 
-| benchmark | drafter | Markov | xPress |
-|---|:---:|:---:|:---:|
-| GSM8K | 6.48 | 9.67 | **10.11** |
-| MATH500 | 7.71 | 9.24 | **9.62** |
-| HumanEval | 6.44 | 7.76 | **8.15** |
-| MBPP | 5.75 | 6.90 | **7.11** |
-| AIME25 | 7.10 | 7.95 | **8.35** |
-| LiveCodeBench | 7.11 | 7.85 | **8.40** |
-| MT-Bench | 3.18 | 4.13 | **4.38** |
+Each entry reports the **throughput-optimal K** for that setting: `bench_fair_fast.sh` sweeps
+`K_LIST=4,5,6,7`, and the numbers below are the K with the best tok/s together with the acceptance
+length measured at that same K.
+
+**Temperature = 0**
+
+| benchmark | dFlash Sp. | τ | Markov Sp. | τ | xPress Sp. | τ | × Gain |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| GSM8K | 4.8× | 6.48 | 7.8× | 9.67 | **8.2×** | **10.11** | 1.70× |
+| MATH-500 | 6.8× | 7.71 | 7.2× | 9.24 | **7.5×** | **9.62** | 1.10× |
+| AIME25<sup>†</sup> | 5.1× | 7.10 | 5.4× | 7.95 | **5.8×** | **8.35** | 1.12× |
+| HumanEval | 5.0× | 6.44 | 6.3× | 7.76 | **6.6×** | **8.15** | 1.32× |
+| MBPP | 4.7× | 5.75 | 5.7× | 6.90 | **5.9×** | **7.11** | 1.25× |
+| LiveCodeBench | 5.2× | 7.11 | 5.7× | 7.85 | **6.1×** | **8.40** | 1.17× |
+| MT-Bench | 2.6× | 3.18 | 3.3× | 4.13 | **3.5×** | **4.38** | 1.36× |
+| **Avg.** | 4.9× | 6.25 | 6.1× | 7.64 | **6.2×** | **8.02** | **1.29×** |
+
+**Temperature = 1** (lossless sampling; τ averaged over 5 seeds)
+
+| benchmark | dFlash Sp. | τ | Markov Sp. | τ | xPress Sp. | τ | × Gain |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| GSM8K | 4.5× | 5.83 | 6.4× | 8.76 | **7.2×** | **9.20** | 1.60× |
+| MATH-500 | 3.8× | 5.71 | 5.4× | 7.60 | **6.0×** | **8.12** | 1.58× |
+| AIME25<sup>†</sup> | 3.1× | 4.35 | 4.2× | 6.22 | **4.6×** | **6.68** | 1.48× |
+| HumanEval | 3.9× | 5.40 | 5.1× | 6.99 | **5.7×** | **7.36** | 1.46× |
+| MBPP | 3.5× | 4.83 | 4.7× | 6.39 | **5.3×** | **6.68** | 1.51× |
+| LiveCodeBench | 3.9× | 5.58 | 4.4× | 6.43 | **4.8×** | **6.65** | 1.23× |
+| MT-Bench | 2.3× | 2.90 | 3.0× | 3.97 | **3.2×** | **4.13** | 1.39× |
+| **Avg.** | 3.6× | 4.94 | 4.7× | 6.62 | **5.3×** | **6.97** | **1.46×** |
+
+`Sp.` = speedup over the autoregressive baseline; `τ` = acceptance length (mean accepted tokens per
+verification step); **× Gain** = xPress's throughput over the plain dFlash drafter. Qwen3-8B with a
+dFlash block-16 drafter, single-sequence decoding, at most 2048 generated tokens, on a single H200.
 
 
 Tolerances: acceptance ±0.1 (bf16 varies slightly across GPU models/driver stacks). Absolute tok/s depends on your node; the **paired ratio** printed by the interleaved script is the number to compare.
