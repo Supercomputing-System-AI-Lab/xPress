@@ -19,6 +19,19 @@
 Block-diffusion drafters like dFlash generate an entire block of draft tokens in a single forward pass, drastically reducing the overhead of multiple-token drafting in speculative decoding. The crucial final step of the single-pass discrete denoising process involves using the logit distribution at each position to sample conditionally independent tokens. The resulting draft is thus a set of per-position marginals, rather than a joint distribution: no draft token is guaranteed to depend on its predecessors. Such independently sampled marginals tend to produce sequences with tokens that are individually likely, but jointly improbable under the target model's distribution, which verifies each token conditionally. This can cause early rejection and limits acceptance length. To address this, we propose **xPress** as a means to restore the missing causality in diffusion drafters. xPress is a lightweight causal refiner that reconciles the whole diffusion block at once through parallel refinement, restoring and propagating causal dependencies across the draft without a token-by-token loop. On Qwen3-8B, across seven math, code, and chat benchmarks, xPress raises **acceptance length by ~30% on average (up to +56%)** and its end-to-end decoding throughput by **~1.3× on average (up to 1.7×)** compared to the original dFlash diffusion drafter.
 
 <p align="center">
+  <img src="images/case_study.gif" alt="A GSM8K prompt decoded three ways: autoregressive, dFlash drafter, and xPress" width="100%">
+</p>
+
+<p align="center">
+<em><b>Case study.</b> A real GSM8K prompt decoded three ways under the same timing setup:
+autoregressive, the dFlash drafter alone, and xPress (ours). Each pane advances by the tokens
+it accepts per target-verification step, so xPress finishes first. Once the dFlash drafter
+finishes, the autoregressive pane is fast-forwarded (&raquo;&raquo;) so you are not left watching
+it crawl. Measured on a single H200 at batch 1; the acceptance lengths shown are for this one
+prompt, not the dataset averages reported below.</em>
+</p>
+
+<p align="center">
   <img src="images/speedup_t0_t1.png" alt="End-to-end speedup over autoregressive decoding on Qwen3-8B" width="100%">
 </p>
 
