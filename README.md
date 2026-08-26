@@ -132,7 +132,7 @@ The figure at the top of this page reports **end-to-end speedup**; the table bel
 | MATH500 | 7.71 | 9.24 | **9.62** |
 | HumanEval | 6.44 | 7.76 | **8.15** |
 | MBPP | 5.75 | 6.90 | **7.11** |
-| AIME25<sup>†</sup> | 7.10 | 7.95 | **8.35** |
+| AIME25 | 7.10 | 7.95 | **8.35** |
 | LiveCodeBench | 7.11 | 7.85 | **8.40** |
 | MT-Bench | 3.18 | 4.13 | **4.38** |
 
