@@ -12,7 +12,7 @@ K_LIST="${K_LIST:-$_KDEF}"            # env-overridable: K_LIST=6 ./bench_fair_f
 DRAFT_T="${DRAFT_T:-$TEMP}"           # advanced: DRAFT_T=0 also switches the DRAFT to argmax (dFlash conv.)
 BLOCK=16
 MAX_NEW_TOKENS=2048
-MAX_SAMPLES=128
+MAX_SAMPLES=128              # AIME25 contains only **30 problems**, so please use `--max-samples 30`
 ROUNDS="${ROUNDS:-$_RDEF}"   # = WARMUP + variants, so the rotation is exactly balanced
 WARMUP_ROUNDS=1
 RUN_AR=0
