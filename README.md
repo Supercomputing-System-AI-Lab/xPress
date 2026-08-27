@@ -116,7 +116,7 @@ Checkpoints are passed **by Hugging Face repo id** and download automatically:
 | [`UIUC-SSAIL/Qwen3-8B-XPress-b16`](https://huggingface.co/UIUC-SSAIL/Qwen3-8B-XPress-b16) | xPress head + its co-trained drafter (and the vLLM serving format) |
 | [`UIUC-SSAIL/Qwen3-8B-Markov-b16`](https://huggingface.co/UIUC-SSAIL/Qwen3-8B-Markov-b16) | Markov-head baseline + its co-trained drafter |
 
-These repos are private during review: run `hf auth login` once with an account that has access. To use local files instead, point `XPRESS_CKPT` / `MK_CKPT` (or `--xpress-refiner-path` / `--markov-refiner-path`) at a `.pt` path. The base drafter (`z-lab/Qwen3-8B-DFlash-b16`) and target (`Qwen/Qwen3-8B`) are public and download automatically.
+To use local files instead, point `XPRESS_CKPT` / `MK_CKPT` (or `--xpress-refiner-path` / `--markov-refiner-path`) at a `.pt` path.
 
 ---
 
