@@ -178,7 +178,7 @@ verification step); **× Gain** = xPress's throughput over the plain dFlash draf
 dFlash block-16 drafter, single-sequence decoding, at most 2048 generated tokens, on a single H200.
 
 
-Tolerances: acceptance ±0.1 (bf16 varies slightly across GPU models/driver stacks). Absolute tok/s depends on your node; the **paired ratio** printed by the interleaved script is the number to compare.
+Tolerances: acceptance ±0.1 (bf16 varies slightly across GPU models/driver stacks). Absolute tok/s depends on your node. The **paired ratio** printed by the interleaved script is the number to compare.
 
 
 ---
