@@ -82,7 +82,7 @@ The exact HF-based harness that produced the paper's acceptance-length and throu
 | Throughput & acceptance metrics, latency profiles | `bench_metrics.py` |
 | dFlash drafter + spec-decode loop (T=1 lossless verification) | `model/dflash.py` |
 | Dataset loading + prompt templates (part of the protocol) | `model/utils.py` |
-| **xPress refiner head** (self-contained torch) | `refiners/xpress_head.py` |
+| xPress refiner head (self-contained torch) | `refiners/xpress_head.py` |
 | xPress loader + par-K Jacobi rollout + CUDA-graph runner | `refiners/xpress.py` |
 | Markov-head baseline (drives DeepSpec's own implementation) | `refiners/markov.py` |
 | Vendored, unmodified DeepSpec code (see `PROVENANCE.md`) | `refiners/deepspec/` |
@@ -103,13 +103,13 @@ pip install -r requirements.txt
 ```
 
 > **Notes**
-> - All reported acceptance lengths and throughputs were measured on a single **NVIDIA H200**. Verified with `torch==2.11.0+cu129`. Any CUDA 12.x-capable node works; if your driver is older than the wheel's CUDA, prepend the compat layer, e.g. `export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:$LD_LIBRARY_PATH`.
+> - All reported acceptance lengths and throughputs were measured on a single **NVIDIA H200**. Verified with `torch==2.11.0+cu129`. Any CUDA 12.x-capable node works. If your driver is older than the wheel's CUDA, prepend the compat layer, e.g. `export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:$LD_LIBRARY_PATH`.
 > - `flash-attn` is OPTIONAL: the harness auto-falls back to torch SDPA (published numbers were measured with SDPA).
-> - First run compiles Triton/inductor kernels (~10 min); later runs reuse the cache (`./inductor_cache`, override with `INDUCTOR_CACHE=...`).
+> - First run compiles Triton/inductor kernels (~5 min); later runs reuse the cache (`./inductor_cache`, override with `INDUCTOR_CACHE=...`).
 
 ### 📦 Checkpoints
 
-Checkpoints are passed **by Hugging Face repo id** and download automatically — the scripts already default to:
+Checkpoints are passed **by Hugging Face repo id** and download automatically:
 
 | checkpoint | contents |
 |---|---|
@@ -200,7 +200,7 @@ See [`vllm_xpress/README.md`](vllm_xpress/README.md) for the serving checkpoint,
 
 ## 🙏 Attribution
 
-The Markov-head **baseline** runs DeepSeek's own implementation, vendored verbatim under `refiners/deepspec/` — see [`refiners/deepspec/PROVENANCE.md`](refiners/deepspec/PROVENANCE.md). Everything under `refiners/xpress*` is ours.
+The Markov-head **baseline** runs DeepSeek's own implementation, vendored verbatim under `refiners/deepspec/`. See [`refiners/deepspec/PROVENANCE.md`](refiners/deepspec/PROVENANCE.md). Everything under `refiners/xpress*` is ours.
 
 ---
 
