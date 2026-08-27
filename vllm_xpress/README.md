@@ -57,17 +57,14 @@ git apply ../registration.patch && VLLM_USE_PRECOMPILED=1 pip install -e .`)
 ## 2. Checkpoint
 
 The serving-format checkpoint (`Qwen3XPressForCausalLM`: `config.json` +
-`model.safetensors`) lives in the release repo and is passed **by name** — vLLM
-downloads it automatically. It is private: run `hf auth login` (or set
-`HF_TOKEN`) with an account that has access (UIUC-SSAIL members do).
+`model.safetensors`) lives in the release repo and is passed **by name**. vLLM
+downloads it automatically.
 
 ```
 UIUC-SSAIL/Qwen3-8B-XPress-b16
 ```
 
-config.json knobs: `xpress_num_passes: 6` (ALWAYS check before benchmarking —
-it is a run knob living in config.json); `xpress_candidate_topc` must be **0 or
-absent** (full-vocab, exact semantics — the release default).
+config.json knobs: `xpress_num_passes: 6` (ALWAYS check before benchmarking. It is a run knob living in config.json); `xpress_candidate_topc` must be **0 or absent**.
 
 To convert a training checkpoint (`refiner_cotrain*.pt`) yourself:
 
@@ -80,10 +77,7 @@ python convert_xpress_to_vllm.py \
 
 ## 3. Benchmark
 
-`bench_vllm_accept.py` runs the SAME datasets and protocol as the HF harness in
-the parent folder (shuffle seed=0 subset, identical prompts, greedy, bs=1) and
-reads acceptance length from vLLM's spec-decode counters
-(AL = 1 + accepted/drafts, same per-step scale as the HF tau at block 16):
+`bench_vllm_accept.py` runs the SAME datasets and protocol as the HF harness in the parent folder (shuffle seed=0 subset, identical prompts, greedy, bs=1) and reads acceptance length from vLLM's spec-decode counters (AL = 1 + accepted/drafts, same per-step scale as the HF tau at block 16):
 
 ```bash
 # xPress (checkpoint defaults to UIUC-SSAIL/Qwen3-8B-XPress-b16):
@@ -103,15 +97,9 @@ python bench_vllm_accept.py --dataset gsm8k,math500,humaneval --batch-size 1,4,8
 for K in 4 5 6 7; do python bench_vllm_accept.py --num-passes $K --max-samples 128; done
 ```
 
-Compare vLLM numbers against vLLM numbers (verify kernels/scheduler differ from
-the HF harness, so small AL offsets vs the HF table are expected).
+Compare vLLM numbers against vLLM numbers (verify kernels/scheduler differ from the HF harness, so small AL offsets vs the HF table are expected).
 
-**Large batch**: pass `--batch-size N` to submit N prompts per `generate()` call
-(vLLM's continuous batching schedules them together). Run the same sweep with
-`--no-spec` to find the spec-decode/AR crossover -- speculative decoding wins at
-low concurrency and loses at large batch by design (the verify passes compete
-with batch parallelism for the same FLOPs), so report the crossover batch, not a
-single number:
+**Large batch**: pass `--batch-size N` to submit N prompts per `generate()` call (vLLM's continuous batching schedules them together). Run the same sweep with `--no-spec` to find the spec-decode/AR crossover -- speculative decoding wins at low concurrency and loses at large batch by design (the verify passes compete with batch parallelism for the same FLOPs), so report the crossover batch, not a single number:
 
 ```bash
 for B in 1 4 8 16 32; do
@@ -120,6 +108,4 @@ for B in 1 4 8 16 32; do
 done
 ```
 
-For vLLM's STANDARD online-serving benchmark (request rates, TTFT/TPOT), serve the
-model and use `vllm bench serve` instead; this script covers offline acceptance +
-throughput on the release protocol.
+For vLLM's STANDARD online-serving benchmark (request rates, TTFT/TPOT), serve the model and use `vllm bench serve` instead. This script covers offline acceptance + throughput on the release protocol.
