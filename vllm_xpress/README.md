@@ -47,8 +47,7 @@ export FLASHINFER_DISABLE_VERSION_CHECK=1
 `setup_vllm.sh` ends by running `verify_install.py`, which fails loudly if any
 file or registration edit is missing. Re-run it any time:
 `python verify_install.py`. At runtime the engine log must show both
-`Asynchronous scheduling is enabled.` and `XPress: K=<n> Jacobi passes` -- a
-missing whitelist entry does not error, it just runs ~17% slower.
+`Asynchronous scheduling is enabled.` and `XPress: K=<n> Jacobi passes`.
 
 (Equivalent manual steps: `git clone https://github.com/vllm-project/vllm.git && cd vllm &&
 git checkout 82ae4164ee016d4daecd2033c26f5c0827984a80 && cp -r ../src/vllm/. vllm/ &&
