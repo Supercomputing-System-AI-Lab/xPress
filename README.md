@@ -113,11 +113,11 @@ Checkpoints are passed **by Hugging Face repo id** and download automatically:
 
 | checkpoint | contents |
 |---|---|
-| [`UIUC-SSAIL/Qwen3-4B-XPress-b16`](https://huggingface.co/UIUC-SSAIL/Qwen3-4B-XPress-b16) | xPress head with block size being 16|
+| [`UIUC-SSAIL/Qwen3-4B-XPress-b16`](https://huggingface.co/UIUC-SSAIL/Qwen3-4B-XPress-b16) | XPress head with block size being 16|
 | [`UIUC-SSAIL/Qwen3-4B-Markov-b16`](https://huggingface.co/UIUC-SSAIL/Qwen3-4B-Markov-b16) | Markov-head with block size being 16|
-| [`UIUC-SSAIL/Qwen3-8B-XPress-b16`](https://huggingface.co/UIUC-SSAIL/Qwen3-8B-XPress-b16) | xPress head with block size being 16|
+| [`UIUC-SSAIL/Qwen3-8B-XPress-b16`](https://huggingface.co/UIUC-SSAIL/Qwen3-8B-XPress-b16) | XPress head with block size being 16|
 | [`UIUC-SSAIL/Qwen3-8B-Markov-b16`](https://huggingface.co/UIUC-SSAIL/Qwen3-8B-Markov-b16) | Markov-head with block size being 16|
-| [`UIUC-SSAIL/gemma4-26b-a4b-XPress-b16`](https://huggingface.co/UIUC-SSAIL/gemma4-26b-a4b-XPress-b16) | xPress head with block size being 16|
+| [`UIUC-SSAIL/gemma4-26b-a4b-XPress-b16`](https://huggingface.co/UIUC-SSAIL/gemma4-26b-a4b-XPress-b16) | XPress head with block size being 16|
 
 
 To use local files instead, point `XPRESS_CKPT` / `MK_CKPT` (or `--xpress-refiner-path` / `--markov-refiner-path`) at a `.pt` path.
