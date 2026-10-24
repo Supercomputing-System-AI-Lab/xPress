@@ -189,7 +189,62 @@ Tolerances: acceptance ±0.1 (bf16 varies slightly across GPU models/driver stac
 
 ## ⚡ Serving with vLLM
 
-[`vllm_xpress/`](vllm_xpress/) runs xPress as a first-class vLLM V1 speculative-decoding method. Our implementation lives there as **readable source** (`vllm_xpress/src/vllm/...`: the refiner head, the draft model, the speculator and its Triton kernels); the only edits to existing upstream files are ~48 lines of method registration in [`registration.patch`](vllm_xpress/registration.patch). `setup_vllm.sh` clones upstream vLLM at a pinned commit, installs our files, and self-checks the result:
+**xPress is upstream in vLLM** ([vllm-project/vllm#54448](https://github.com/vllm-project/vllm/pull/54448),
+merged 2026-10-22). Nothing in this repo is needed to serve it: install vLLM and point
+`speculative_config` at a published checkpoint. The method name is `dflash` — xPress is a
+refiner *on top of* the dFlash drafter, and vLLM switches it on automatically when the draft
+config declares one.
+
+The merge landed after `v0.32.0`, so until the next release install from `main`:
+
+```bash
+pip install -U vllm --pre --extra-index-url https://wheels.vllm.ai/nightly
+```
+
+```bash
+vllm serve Qwen/Qwen3-8B \
+  --speculative-config '{"model": "UIUC-SSAIL/Qwen3-8B-XPress-b16",
+                         "method": "dflash",
+                         "num_speculative_tokens": 15}'
+```
+
+```python
+from vllm import LLM, SamplingParams
+
+llm = LLM(
+    model="Qwen/Qwen3-8B",
+    speculative_config={
+        "model": "UIUC-SSAIL/Qwen3-8B-XPress-b16",
+        "method": "dflash",
+        "num_speculative_tokens": 15,
+    },
+)
+print(llm.generate(["What is 17 * 24?"], SamplingParams(max_tokens=128))[0].outputs[0].text)
+```
+
+`num_speculative_tokens` is `block_size - 1`, so 15 for the b16 checkpoints. Everything else has a
+working default: the checkpoint's `config.json` carries `xpress_topc` (512) and
+`xpress_num_passes` (6), so you only touch them if you want to.
+
+<details>
+<summary><b>One knob worth knowing: <code>xpress_topc</code></b></summary>
+
+Each Jacobi pass reads out to the vocabulary through a `[vocab, r]` weight — 78 MB in bf16, re-read
+every pass, at roughly 1 FLOP per byte. `xpress_topc` restricts that readout to the drafter's top-C
+base-logit candidates. Those candidates come from the fixed base logits, so they are the same for
+every pass: the gather happens once per step instead of once per pass.
+
+Acceptance saturates at **C = 512** — within bf16 noise of the full-vocabulary path on all seven
+benchmarks — which is the shipped default. Pass `"xpress_topc": 0` in `speculative_config` to
+restore the full-vocabulary readout.
+
+</details>
+
+**Reproducing the paper from this repo instead.** [`vllm_xpress/`](vllm_xpress/) is the
+self-contained fork-install that predates the upstream merge: readable source plus a
+~48-line [`registration.patch`](vllm_xpress/registration.patch), pinned to one upstream commit.
+It is kept for provenance and for the benchmark drivers below; new users should prefer upstream
+vLLM.
 
 ```bash
 conda create -n vllm-xpress python=3.11 -y && conda activate vllm-xpress
@@ -199,6 +254,29 @@ python bench_vllm_accept.py --method dspark --dataset gsm8k --max-samples 128   
 ```
 
 See [`vllm_xpress/README.md`](vllm_xpress/README.md) for the serving checkpoint, the K/batch sweeps, and the runtime log lines that confirm the integration is active.
+
+---
+
+## 🏋️ Training your own xPress head
+
+xPress is also upstream in [**speculators**](https://github.com/vllm-project/speculators),
+vLLM's training library for speculative decoding
+([speculators#1061](https://github.com/vllm-project/speculators/pull/1061), merged 2026-10-05).
+It trains the refiner online against a live vLLM verifier and writes a checkpoint that
+`vllm serve` loads directly — there is no conversion step.
+
+```bash
+pip install speculators
+```
+
+The recipe that produced the published Qwen3-8B head is checked in upstream as
+[`examples/train/xpress_qwen3_8b_regen_online.sh`](https://github.com/vllm-project/speculators/blob/main/examples/train/xpress_qwen3_8b_regen_online.sh),
+and the algorithm page is
+[`docs/user_guide/algorithms/xpress.md`](https://github.com/vllm-project/speculators/blob/main/docs/user_guide/algorithms/xpress.md).
+
+The drafter and refiner are trained on target-model regenerations rather than on the raw corpus;
+ours come from
+[`inference-optimization/Qwen3-8B-Regenerated-Collection`](https://huggingface.co/datasets/inference-optimization/Qwen3-8B-Regenerated-Collection).
 
 ---
 
