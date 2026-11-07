@@ -158,6 +158,14 @@ def main() -> None:
                         "ignores K, so it needs no variant). K does NOT trigger a recompile -- it is a Python "
                         "loop over a compiled head called with identical shapes, so only a cheap CUDA-graph "
                         "re-capture per K. Default: just --xpress-refine-passes.")
+    parser.add_argument("--fair-markov-k-list", type=str, default=None, metavar="1,4,7,15",
+                        help="With --fair-interleave: ALSO run the Markov head under the SAME Jacobi "
+                        "schedule as XPress, one variant per K, in the same rotation. This is the "
+                        "schedule-only control: identical seed, identical prefix locking, only the head "
+                        "differs. The Markov chain conditions position k on the token id at k-1 alone, so "
+                        "K = block_size - 1 reproduces its SEQUENTIAL decode token for token -- use that K "
+                        "as a correctness check against the published sequential number. Default: off "
+                        "(Markov runs sequentially, as in the paper).")
     parser.add_argument("--fair-warmup-rounds", type=int, default=1,
                         help="With --fair-interleave: discard the first N rounds (cold caches / GPU not yet at "
                         "boost). Order-based exclusion declared up front -- not cherry-picking. Still printed.")
@@ -392,6 +400,25 @@ def main() -> None:
             if dist.is_main():
                 print(f"[fair] XPress CUDA-graph runners captured for K={k_list} (no recompile: same shapes)")
 
+        mk_k_list = ([int(x) for x in args.fair_markov_k_list.split(",") if x.strip()]
+                     if args.fair_markov_k_list else [])
+        mk_jac_runners = {}
+        if mk_k_list:
+            # The eager Markov path calls sample_block_tokens, which is SEQUENTIAL -- without
+            # the graph runner the Jacobi variant would silently decode sequentially and the
+            # control would be a duplicate of the reference.
+            assert args.use_graph, "--fair-markov-k-list requires --use-graph"
+            from refiners.markov import MarkovJacobiGraphRunner
+            _draft_t = args.temperature if args.draft_temperature is None else args.draft_temperature
+            _lock = args.temperature > 0
+            for _K in mk_k_list:
+                mk_jac_runners[_K] = MarkovJacobiGraphRunner(
+                    markov_head=markov_refiner, block_size=block_size, vocab_size=vocab_size,
+                    device=device, temperature=_draft_t, refine_passes=_K, lock=_lock)
+            if dist.is_main():
+                print(f"[fair] Markov+Jacobi CUDA-graph runners captured for K={mk_k_list} "
+                      f"(K={block_size - 1} == the sequential decode, token for token)")
+
         def _rt_xpress(K):
             rt = dict(runtime)
             rt["xpress_refiner"]      = xpress_refiner
@@ -409,7 +436,14 @@ def main() -> None:
             rt["markov_graph_runner"] = markov_graph_runner
             return rt
 
+        def _rt_markov_jacobi(K):
+            rt = _rt_markov()
+            rt["markov_graph_runner"] = mk_jac_runners[K]     # same head, Jacobi schedule
+            return rt
+
         specs = [(f"K{K}", f"XPress(K={K})", "xpress", _rt_xpress(K)) for K in k_list]
+        specs += [(f"mkJ{K}", f"Markov+J(K={K})", "markov", _rt_markov_jacobi(K))
+                  for K in mk_k_list]
         specs.append(("markov", "Markov", "markov", _rt_markov()))
         REF = "markov"
 

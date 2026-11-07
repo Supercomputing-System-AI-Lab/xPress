@@ -141,6 +141,19 @@ Bare-drafter baseline (the `drafter` column below): pass `--drafter-only` to `be
 
 Single-method / custom runs go through `benchmark_compile_all.py` directly (see `--help`); the `.sh` wrapper only sets the published protocol.
 
+**Markov head under the Jacobi schedule.** `--fair-markov-k-list` adds the schedule-only control: the Markov head run with xPress's parallel Jacobi rollout instead of its sequential decode, one variant per K, in the same interleaved rotation (identical seed, identical prefix locking — only the head differs). Because the Markov chain conditions position *k* on the token id at *k−1* alone, `K = block_size − 1` reproduces its sequential decode **token for token**, so that K doubles as a correctness check against the published sequential number:
+
+```bash
+python benchmark_compile_all.py --model-name-or-path Qwen/Qwen3-8B \
+    --draft-name-or-path z-lab/Qwen3-8B-DFlash-b16 \
+    --xpress-refiner-path UIUC-SSAIL/Qwen3-8B-XPress-b16 \
+    --markov-refiner-path UIUC-SSAIL/Qwen3-8B-Markov-b16 \
+    --block-size 16 --dataset gsm8k --max-new-tokens 2048 --max-samples 128 \
+    --use-graph --compile-all --temperature 0 --skip-ar \
+    --fair-interleave 9 --fair-warmup-rounds 1 \
+    --fair-k-list 7 --fair-markov-k-list 1,2,4,7,10,15
+```
+
 ### 📊 Results
 
 Both temperatures, all seven benchmarks: **speedup over the autoregressive baseline (Sp.)** and
